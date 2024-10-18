@@ -19,7 +19,7 @@ struct node* createNode(char _character, struct node* _next, int _end, char* _wo
 /*
 	Recorre los chars del arreglo src hasta encontrase con un 
 	NULL ('\0'). Este indica que finalizo el string, es decir, no
-	hay más elementos en el arreglo. 
+	hay mÃ¡s elementos en el arreglo. 
 	Dev: la cantidad de chars del arreglo. 
 */
 int strLen(char* src) {
@@ -31,10 +31,10 @@ int strLen(char* src) {
 }
 
 /*
-	Copia en c (un puntero a una variable dinámica; del mismo tamaño que src) todos los caracteres
+	Copia en c (un puntero a una variable dinÃ¡mica; del mismo tamaÃ±o que src) todos los caracteres
 	de src. Agrega un NULL al final para indicar finalizo el string.
 	Dev: el puntero al nuevo string.
-	Obs: Luego de llamar la función, la memoria debe ser liberada.
+	Obs: Luego de llamar la funciÃ³n, la memoria debe ser liberada.
 */
 char* strDup(char* src) {
 	int len = strLen(src);
@@ -125,8 +125,8 @@ void keysPredictPrintAux(struct node* n, int level) {
 // Auxiliar functions
 
 /*
-	Recorre la lista hasta encontrar el character deseado. Si lo encuentra,
-	devuelve la dirección del nodo. Si no, devuelve NULL.
+	Recorre la lista hasta encontrar el caracter deseado. Si lo encuentra,
+	devuelve la direcciÃ³n del nodo. Si no, devuelve NULL.
 */
 struct node* findNodeInLevel(struct node** list, char character) {
 	struct node* curr = *list;
