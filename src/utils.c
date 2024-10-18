@@ -2,6 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/////// AUXILIARES PROPIAS ////////
+
+struct node* createNode(char _character, struct node* _next, int _end, char* _word, struct node* _down){
+	struct node* n = (struct node*) malloc(sizeof(struct node));
+	n->character = _character;
+	n->next = _next;
+	n->end = _end;
+	n->word = _word;
+	n->down = _down;
+	return n;
+}
+
+//////////////////////////////////
+
 /*
 	Recorre los chars del arreglo src hasta encontrase con un 
 	NULL ('\0'). Este indica que finalizo el string, es decir, no
@@ -116,7 +130,7 @@ void keysPredictPrintAux(struct node* n, int level) {
 */
 struct node* findNodeInLevel(struct node** list, char character) {
 	struct node* curr = *list;
-	while(curr != NULL){
+	while(curr != 0){
 		if(curr->character == character){
 			return curr;
 		}
@@ -125,11 +139,54 @@ struct node* findNodeInLevel(struct node** list, char character) {
     return 0;
 }
 
-struct node* addSortedNewNodeInLevel(struct node** list, char character) {
-
-    // COMPLETAR
-
-    return 0;
+struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA
+	struct node* newNode = createNode(character, 0, 0, 0, 0); // Función auxiliar para crear nodos;
+	struct node* curr = *list;
+	
+	// Si list es vacía;
+	if(curr == 0){
+		*list = newNode;
+		return newNode;
+	}
+	
+	// Si es el primer elemento;
+	else if(character < curr->character){
+		*list = newNode;
+		newNode->next = curr;
+		return newNode;
+	}
+	
+	// Si la lista tiene 1 solo nodo, y newNode va segundo;
+	if(curr->next == 0) {
+		curr->next = newNode;
+		return newNode;
+	}
+	
+	// Si tiene n>1 elementos;
+	struct node* prev = curr;
+	curr = curr->next;
+	
+	while(curr->next != 0){
+		if(character < curr->character){
+			newNode->next = curr;
+			prev->next = newNode;
+			return newNode;
+		}
+		else if(character == curr->character){
+			return curr;
+		}
+		
+		prev = curr;
+		curr = curr->next;
+	}
+	
+	// Verificar último elemento;
+	if(character != curr->character){
+		curr->next = newNode; // newNode->next ya es 0;
+		return newNode;
+	}
+	
+	return curr;
 }
 
 void deleteArrayOfWords(char** words, int wordsCount) {
