@@ -1,17 +1,37 @@
 #include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+/*
+	Recorre los chars del arreglo src hasta encontrase con un 
+	NULL ('\0'). Este indica que finalizo el string, es decir, no
+	hay más elementos en el arreglo. 
+	Dev: la cantidad de chars del arreglo. 
+*/
 int strLen(char* src) {
-
-    // COMPLETAR
-
-    return 0;
+	int i = 0;
+	while (src[i]!='\0'){
+		i++;
+	}
+	return i;
 }
 
+/*
+	Copia en c (un puntero a una variable dinámica; del mismo tamaño que src) todos los caracteres
+	de src. Agrega un NULL al final para indicar finalizo el string.
+	Dev: el puntero al nuevo string.
+	Obs: Luego de llamar la función, la memoria debe ser liberada.
+*/
 char* strDup(char* src) {
-
-    // COMPLETAR
-
-    return 0;
+	int len = strLen(src);
+	char* c = (char*) malloc( sizeof(char) * (len + 1) ); 
+	int i = 0;
+	while (src[i]!='\0'){
+		c[i] = src[i];
+		i++;
+	}
+	c[len] = '\0';
+	return c;
 }
 
 // Keys Predict
@@ -90,10 +110,18 @@ void keysPredictPrintAux(struct node* n, int level) {
 
 // Auxiliar functions
 
+/*
+	Recorre la lista hasta encontrar el character deseado. Si lo encuentra,
+	devuelve la dirección del nodo. Si no, devuelve NULL.
+*/
 struct node* findNodeInLevel(struct node** list, char character) {
-
-    // COMPLETAR
-
+	struct node* curr = *list;
+	while(curr != NULL){
+		if(curr->character == character){
+			return curr;
+		}
+		curr = curr->next;
+	}
     return 0;
 }
 
