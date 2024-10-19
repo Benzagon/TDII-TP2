@@ -58,16 +58,35 @@ struct keysPredict* keysPredictNew() {
     kt->totalWords = 0;
     return kt;
 }
-
+/////////////////////////////////
+/////////////////////////////////////////
 void keysPredictAddWord(struct keysPredict* kt, char* word) {
-
-    // COMPLETAR
-
+    int word_len = strLen(word);
+	//dudoso, la idea es guardar el pointer del primer nodo del primer nivel
+	struct node** curr = &(kt->first); 
+	struct node* n;
+	for(int i = 0; i<word_len;i++){
+		//Agrega de forma ordenada el caracter al nivel correspondiente
+		n = addSortedNewNodeInLevel(curr, word[i]); 
+		//Bajo de nivel
+		curr = &(n->down);
+	}
+	n->word = strDup(word);
+	n->end = 1;
 }
 
 void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
 
-    // COMPLETAR
+    int word_len = strLen(word);
+	struct node* curr = kt->first;
+	for(int i = 0;i<word_len; i++){
+		curr = findNodeInLevel(&curr, word[i]);
+		if (curr->word == word){
+			nodo->end = 0;
+			nodo->word = 0;
+		}
+		curr = curr->down;
+	}
 }
 
 struct node* keysPredictFind(struct keysPredict* kt, char* word) {
