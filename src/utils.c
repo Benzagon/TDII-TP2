@@ -1,3 +1,4 @@
+
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,7 +139,8 @@ struct node* findNodeInLevel(struct node** list, char character) {
 	}
     return 0;
 }
-
+/////////////////////////////////////////////
+/////////////////////////////////////////////
 struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA
 	struct node* newNode = createNode(character, 0, 0, 0, 0); // Función auxiliar para crear nodos;
 	struct node* curr = *list;
@@ -188,8 +190,41 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 	
 	return curr;
 }
-
+///////////////////////////////////////
+////////////////////////////////////////
 void deleteArrayOfWords(char** words, int wordsCount) {
-
-    // COMPLETAR
+	for(int i = 0; i<wordsCount; i++){
+		//printf("por borar %d: %s\n", i, words[i]);
+		free(words[i]); //SE BORRA EL ULTIMO?
+		//printf("borrado %d: %s\n", i, words[i]);
+	}
+	free(words);
 }
+/*
+int main() {
+	int wordsCount = 2;
+	
+	char** words = (char**)malloc(wordsCount * sizeof(char*));
+	
+	words[0] = (char*)malloc(20 * sizeof(char));  
+	words[1] = (char*)malloc(20 * sizeof(char));
+	//words[2] = (char*)malloc(20 * sizeof(char));
+	//words[3] = (char*)malloc(20 * sizeof(char));
+	
+	words[0] = strDup("Hola");
+	words[1] = strDup("Mundo");
+	//words[2] = strDup("Wooooooooooooooooooooop");
+	//words[3] = strDup("puto");
+	
+	for (int i = 0; i < wordsCount; i++) {
+		printf("Palabra %d: %s\n", i, words[i]);
+	}
+	
+	deleteArrayOfWords(words, wordsCount);
+	for (int i = 0; i < wordsCount; i++) {
+		printf("Palabra %d: %s\n", i, words[i]);
+	}
+	
+	return 0;
+}
+*/
