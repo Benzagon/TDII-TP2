@@ -4,7 +4,10 @@
 #include <stdlib.h>
 
 /////// AUXILIARES PROPIAS ////////
-
+/*
+	Crea un nodo con los valores pasados por parametro.
+	Dev: el nuevo nodo.
+*/
 struct node* createNode(char _character, struct node* _next, int _end, char* _word, struct node* _down){
 	struct node* n = (struct node*) malloc(sizeof(struct node));
 	n->character = _character;
@@ -14,8 +17,6 @@ struct node* createNode(char _character, struct node* _next, int _end, char* _wo
 	n->down = _down;
 	return n;
 }
-
-//////////////////////////////////
 
 /*
 	Recorre los chars del arreglo src hasta encontrase con un 
@@ -32,8 +33,9 @@ int strLen(char* src) {
 }
 
 /*
-	Copia en c (un puntero a una variable dinámica; del mismo tamaño que src) todos los caracteres
-	de src. Agrega un NULL al final para indicar finalizo el string.
+	Copia en c (un puntero a una variable dinámica; del mismo tamaño 
+	que src) todos los caracteres de src. Agrega un NULL al final para 
+	indicar finalizo el string. 
 	Dev: el puntero al nuevo string.
 	Obs: Luego de llamar la función, la memoria debe ser liberada.
 */
@@ -58,8 +60,11 @@ struct keysPredict* keysPredictNew() {
     kt->totalWords = 0;
     return kt;
 }
-/////////////////////////////////
-/////////////////////////////////////////
+/*
+	Por cada letra de la palabra que se desea agregar, se agrega de
+	forma ordenada al nivel corrspondiente. A la ultima letra le guarda
+	en word la palabra y en end guarda un 1.
+*/
 void keysPredictAddWord(struct keysPredict* kt, char* word) {
     int word_len = strLen(word);
 	//dudoso, la idea es guardar el pointer del primer nodo del primer nivel
@@ -74,7 +79,11 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 	n->word = strDup(word);
 	n->end = 1;
 }
-
+/*
+	Recorre los niveles buscando la letra correspondinete al nivel.
+	Si la letra deseada es la ultima de la palabra, asigna a word
+	y a end 0, asi "borrando" la palabra.
+*/
 void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
 
     int word_len = strLen(word);
