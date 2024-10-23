@@ -19,9 +19,9 @@ struct node* createNode(char _character, struct node* _next, int _end, char* _wo
 }
 
 /*
-	Recorre los niveles buscando la letra correspondinete al nivel por cada caracter de word.
-	Retorna el último nodo del prefijo.
-	Si el prefijo no está en keysPredict, retorna 0.
+	Recorre los niveles buscando la letra correspondinete al nivel por cada caracter de partialWord.
+	Retorna el ultimo nodo del prefijo.
+	Si el prefijo no esta en keysPredict, retorna 0.
 */
 struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWord) {
 	int word_len = strLen(partialWord);
@@ -30,7 +30,7 @@ struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWor
 	for(int i = 0; i<word_len; i++){
 		curr = findNodeInLevel(&curr, partialWord[i]);
 		if(curr == 0){
-			return 0; // Si la palabra parcial no está.
+			return 0; // Si la palabra parcial no esta.
 		}
 		prev = curr;
 		curr = curr->down;
@@ -41,7 +41,7 @@ struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWor
 /*
 	A partir de un nodo, cuenta cuantas palabras existen desde ese nivel en adelante.
 	Retorna la cantidad de palabras en wordsCount.
-	Si el nodo pasado por parametro es NULL, retorna.
+	Si el nodo pasado por parametro es NULL, retorna sin modificar wordsCount.
 */
 void nodeCountAround(struct node* n, int* wordsCount){		
 	struct node* curr = n;
@@ -57,6 +57,49 @@ void nodeCountAround(struct node* n, int* wordsCount){
 	return;
 }
 
+/*
+	A partir de un nodo, agrega a el arreglo "words" todas las palabras desde ese nivel en adelante.
+	Retorna en words las palabras en cuestiÃ³n.
+	Si el nodo pasado por parametro es NULL, retorna sin modificar words.
+	
+	Requiere: 
+	El arreglo words debe ser del mismo tamaÃ±o que la cantidad de palabras desde ese nivel en adelante.
+	'i' debe ser la primer posiciÃ³n a llenar del arreglo.
+
+	Modifica:
+	'i' es la cantidad de palabras en el arreglo.
+*/
+void addWordsToArray(struct node* n, char** words, int i){
+	struct node* curr = n;
+	while(curr != 0){
+		if(curr->end == 1){
+			words[i] = curr->word;
+			i++;
+		}
+		if(curr->down != 0){
+			addWordsToArray(curr->down, words, i);
+		}
+		curr = curr->next;
+	}
+	return;
+}
+
+/*
+	Recorre el nivel del nodo borrando (liberando la memoria) todos los niveles por debajo y el nivel del mismo nodo.
+*/
+void abortLevel(struct node* n){
+    struct node* curr = n;
+	struct node* prev;
+	while(curr){
+		if(curr->down){
+			abortLevel(curr->down);
+		}
+		prev = curr;
+		curr = curr->next;
+		free(prev);
+	}
+	return;
+}
 //////////////////////////////////
 	
 /*
@@ -111,14 +154,25 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 	//dudoso, la idea es guardar el pointer del primer nodo del primer nivel
 	struct node** curr = &(kt->first); 
 	struct node* n;
+	struct node* findNode;
 	for(int i = 0; i<word_len;i++){
-		//Agrega de forma ordenada el caracter al nivel correspondiente
-		n = addSortedNewNodeInLevel(curr, word[i]); 
-		//Bajo de nivel
-		curr = &(n->down);
+		findNode = findNodeInLevel(curr, word[i]);
+		if(!findNode){
+			n = addSortedNewNodeInLevel(curr, word[i]); // Agrega de forma ordenada el caracter al nivel correspondiente
+			kt->totalKeys++;
+			curr = &(n->down); // Bajo de nivel
+		}
+		else {
+			curr = &(findNode->down);
+		}
+	}
+	if(n->end == 1){
+		return;
 	}
 	n->word = strDup(word);
 	n->end = 1;
+	kt->totalWords++;
+	return;
 }
 /*
 	Recorre los niveles buscando la letra correspondinete al nivel.
@@ -126,31 +180,29 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 	y a end 0, asi "borrando" la palabra.
 */
 void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
-
     int word_len = strLen(word);
 	struct node* curr = kt->first;
 	for(int i = 0;i<word_len; i++){
 		curr = findNodeInLevel(&curr, word[i]);
 		if (curr->word == word){ // ESTO PUEDE FALLAR
-			nodo->end = 0;
-			nodo->word = 0;
+			curr->end = 0;
+			curr->word = 0;
 		}
 		curr = curr->down;
 	}
 }
 
-/*void keysPredictRemoveWord(struct keysPredict* kt, char* word) {*/
-/*	struct node* nodo = keysPredictFind(kt, word);*/
-/*	if(n == 0) {*/
-/*		return;*/
-/*	}*/
-/*	nodo->end = 0;*/
-/*	nodo->word = 0;*/
-/*}*/
+// void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
+// 	struct node* nodo = keysPredictFind(kt, word);
+//     if(!nodo) return;
+// 	nodo->end = 0;
+// 	nodo->word = 0;
+// 	return;
+// }
 
 /*
 	Recorre los niveles buscando la letra correspondinete al nivel por cada caracter de word.
-	Si llega al final y la palabra está agregada, retorna el nodo.
+	Si llega al final y la palabra esta agregada, retorna el nodo.
 	En caso de no encontrar el nodo, retorna 0.
 */
 struct node* keysPredictFind(struct keysPredict* kt, char* word) {
@@ -160,49 +212,93 @@ struct node* keysPredictFind(struct keysPredict* kt, char* word) {
 	for(int i = 0; i<word_len; i++){
 		curr = findNodeInLevel(&curr, word[i]);
 		if(curr == 0){
-			return 0; // Si la palabra no está.
+			return 0; // Si la palabra no esta.
 		}
 		prev = curr;
 		curr = curr->down;
 	}
 	if(prev->end != 1 && prev->word != word){
-		return 0; // Si la palabra no está guardada.
+		return 0; // Si la palabra no esta guardada.
 	}
 	return prev;
 }
 
+/*
+	Dadas las primeras letras de una palabra 'partialWord', busca todas las palabras que contenga el prefijo indicado. 
+	
+	Modifca: 
+	En wordsCount: cuantas palabras existen en los niveles por debajo del Ãºltimo nodo del prefijo.
+	
+	Devuelve:
+	Un arreglo de tamaÃ±o wordsCount con las palabras.
+	Obs: DeberÃ¡ ser liberado luego de llamar la funciÃ³n.
+*/
 char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount) {
 	struct node* nodo_prefijo = keysPredictFindPartialWord(kt, partialWord);
 	*wordsCount = 0;
     if(nodo_prefijo == 0){ // Si el prefijo no existe en kt.
-		char** words = malloc(0);// ->{}
-		return words;
+		char** words = (char**) malloc(0);// ->{}
+		return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
 	}
-	// A CHEQUEAR
-	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.
+
+	int i = 0; // Primera posiciÃ³n del arreglo.
+	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.  ==================> PREGUNTAR
 		*wordsCount++;
+		i++;
 	}
+
 	nodeCountAround(nodo_prefijo->down, wordsCount); // Contar cuantas palabras hay debajo de partialWord.
+	char** words = (char**) malloc(sizeof(char*) * *wordsCount);	
 
-    return 0;
+	if(i){ // Si el prefijo es una palabra.
+		words[0] = nodo_prefijo->word;
+	}
+	
+	addWordsToArray(nodo_prefijo->down, words, i);
+
+    return words;
 }
 
-int keysPredictCountWordAux(struct node* n) {
+// int keysPredictCountWordAux(struct node* n) {  ==================== QUE ES ESTO?
 
-    // COMPLETAR
-}
+//     // COMPLETAR
+// }
 
+/*
+	Retorna un arreglo en memoria dinamica con todas las palabras almacenadas en la estructura.
+	
+	Modifca: 
+	En wordsCount: cuantas palabras existen en la estructura.
+	
+	Devuelve:
+	Un arreglo de tamaÃ±o wordsCount con las palabras.
+	Obs: DeberÃ¡ ser liberado luego de llamar la funciÃ³n.
+*/
 char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
-
-    // COMPLETAR
-
-    return 0;
+	if(kt->first == 0){
+		char** words = (char**) malloc(0);// ->{}
+		return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
+	}
+	char** words = (char**) malloc(sizeof(char*) * kt->totalWords);	
+	addWordsToArray(kt->first, words, 0);
+	*wordsCount = kt->totalWords; 
+	return words;
 }
 
+/*
+	Borra la estructura keysPredict completa (palabras, nodos, nodo raiz).
+*/
 void keysPredictDelete(struct keysPredict* kt) {
+	// Borrar todas las palabras:
+	int totalWords = 0;
+	char** words = keysPredictListAll(kt, &totalWords);
+    deleteArrayOfWords(words, totalWords);
 
-    // COMPLETAR
+	// Borrar todos los nodos:
+	abortLevel(kt->first);
 
+	// Borrar keysPredict:
+	free(kt);
 }
 
 void keysPredictPrint(struct keysPredict* kt) {
@@ -244,11 +340,11 @@ struct node* findNodeInLevel(struct node** list, char character) {
 }
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA
-	struct node* newNode = createNode(character, 0, 0, 0, 0); // Función auxiliar para crear nodos;
+struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA ====== EL PRIMERO DEL NIVEL AAAA
+	struct node* newNode = createNode(character, 0, 0, 0, 0); // Funcion auxiliar para crear nodos;
 	struct node* curr = *list;
 	
-	// Si list es vacía;
+	// Si list es vacia;
 	if(curr == 0){
 		*list = newNode;
 		return newNode;
@@ -285,7 +381,7 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 		curr = curr->next;
 	}
 	
-	// Verificar último elemento;
+	// Verificar ultimo elemento;
 	if(character != curr->character){
 		curr->next = newNode; // newNode->next ya es 0;
 		return newNode;
