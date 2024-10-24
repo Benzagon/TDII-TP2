@@ -242,7 +242,7 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	}
 
 	int i = 0; // Primera posición del arreglo.
-	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.  ==================> PREGUNTAR
+	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.
 		*wordsCount++;
 		i++;
 	}
@@ -340,7 +340,7 @@ struct node* findNodeInLevel(struct node** list, char character) {
 }
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA ====== EL PRIMERO DEL NIVEL AAAA
+struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA ====== EL PRIMERO DEL NIVEL AAAA NOOOO NICO ME DIJO QUE ESTA BIEN
 	struct node* newNode = createNode(character, 0, 0, 0, 0); // Funcion auxiliar para crear nodos;
 	struct node* curr = *list;
 	
