@@ -6,7 +6,8 @@
 /////// AUXILIARES PROPIAS ////////
 /*
 	Crea un nodo con los valores pasados por parametro.
-	Dev: el nuevo nodo.
+
+	Devuelve: El nuevo nodo.
 */
 struct node* createNode(char _character, struct node* _next, int _end, char* _word, struct node* _down){
 	struct node* n = (struct node*) malloc(sizeof(struct node));
@@ -20,8 +21,10 @@ struct node* createNode(char _character, struct node* _next, int _end, char* _wo
 
 /*
 	Recorre los niveles buscando la letra correspondiente al nivel por cada caracter de partialWord.
-	Retorna el ultimo nodo del prefijo.
-	Si el prefijo no esta en keysPredict, retorna 0.
+
+	Devuelve:
+		* 0 si el prefijo no esta en keysPredict
+		* El ultimo nodo del prefijo si el prefijo esta en keysPredict.
 */
 struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWord) {
 	int word_len = strLen(partialWord);
@@ -33,23 +36,24 @@ struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWor
 			return 0; // Si la palabra parcial no esta.
 		}
 		prev = curr;
-		curr = curr->down;
+		curr = curr->down; // Busco siguiente letra dle prefijo
 	}
 	return prev;
 }
 
 /*
 	A partir de un nodo, cuenta cuantas palabras existen desde ese nivel en adelante.
-	Retorna la cantidad de palabras en wordsCount.
-	Si el nodo pasado por parametro es NULL, retorna sin modificar wordsCount.
+
+	Modifica: wordsCount, agregando la cantidad de palabras encontradas. Si el nodo	pasado 
+	por parametro es NULL, no modifica wordsCount.
 */
 void nodeCountAround(struct node* n, int* wordsCount){		
 	struct node* curr = n;
 	while(curr != 0){
 		if(curr->end == 1){
-			(*wordsCount)++; // Sumo si encontre el final de una palabra.
+			(*wordsCount)++; // Sumo a wordsCount si encontre el final de una palabra.
 		}
-		if(curr->down != 0){ // Si existe un nivel inferior.
+		if(curr->down != 0){ // Si existe un nivel inferior...
 			nodeCountAround(curr->down, wordsCount); // Cuento todas las palabras desde ese nivel.
 		}
 		curr = curr->next;
@@ -58,55 +62,58 @@ void nodeCountAround(struct node* n, int* wordsCount){
 }
 
 /*
-	A partir de un nodo, agrega a el arreglo "words" todas las palabras desde ese nivel en adelante.
-	Retorna en words las palabras en cuestión.
-	Si el nodo pasado por parametro es NULL, retorna sin modificar words.
+	A partir de un nodo, agrega a el arreglo words todas las palabras desde ese nivel en adelante.
 	
 	Requiere: 
-	El arreglo words debe ser del mismo tamaño que la cantidad de palabras desde ese nivel en adelante.
-	'i' debe ser un puntero a la primera posición a llenar del arreglo.
+		* El arreglo words debe ser del mismo tamaño que la cantidad de palabras que hay desde 
+		ese nivel en adelante.
+		* i debe ser un puntero a la primera posición a llenar del arreglo.
 
 	Modifica:
-	'*i' es la cantidad de palabras en el arreglo.
+		* En i queda la cantidad de palabras en el arreglo.
+		* En words se agregan las palabras en cuestión. Si el nodo pasado por parametro es NULL, 
+		no modifica words.
 */
 void addWordsToArray(struct node* n, char** words, int* i){
 	struct node* curr = n;
 	while(curr != 0){
-		if(curr->end == 1){
-			words[*i] = strDup(curr->word); 
+		if(curr->end == 1){ 
+			words[*i] = strDup(curr->word); // Agrega a words la palabra encontrada.
 			(*i)++;
 		}
 		if(curr->down != 0){
-			addWordsToArray(curr->down, words, i);
+			addWordsToArray(curr->down, words, i); // Busca la palabra en el nivel de abajo.
 		}
-		curr = curr->next;
+		curr = curr->next; // Busca siguiente palabra
 	}
 	return;
 }
 
 /*
-	Recorre el nivel del nodo borrando (liberando la memoria) todos los niveles por debajo y el nivel del mismo nodo.
+	Recorre el nivel del nodo borrando (liberando la memoria) todos los niveles desde el del mismo
+	hasta los ultimos.
+
+	Modifica: el keysPredict, liberando todo desde el nivel especificado.
 */
 void abortLevel(struct node* n){
     struct node* curr = n;
 	struct node* prev;
 	while(curr){
 		if(curr->down){
-			abortLevel(curr->down);
+			abortLevel(curr->down); // Si el nodo posee otro abajo, borra ese primero
 		}
 		prev = curr;
 		curr = curr->next;
-		free(prev);
+		free(prev); // Borra el nodo una vez que no posee ninguno abajo
 	}
 	return;
 }
-//////////////////////////////////
 	
 /*
-	Recorre los chars del arreglo src hasta encontrase con un 
-	NULL ('\0'). Este indica que finalizo el string, es decir, no
-	hay mas elementos en el arreglo. 
-	Dev: la cantidad de chars del arreglo. 
+	Recorre los chars del arreglo src hasta encontrase con un NULL ('\0'). Este indica que finalizo 
+	el string, es decir, no hay mas elementos en el arreglo. 
+
+	Devuelve: la cantidad de chars del arreglo. 
 */
 int strLen(char* src) {
 	int i = 0;
@@ -322,9 +329,17 @@ struct node* findNodeInLevel(struct node** list, char character) {
 	}
     return 0;
 }
-/////////////////////////////////////////////
-/////////////////////////////////////////////
-struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QUE RETORNA ====== EL PRIMERO DEL NIVEL AAAA NOOOO NICO ME DIJO QUE ESTA BIEN
+
+/*
+	Recorre el nivel hasta que encuentra un nodo cuyo caracter posee un valor de ASCII mayor al
+	del caracter a agregar. Una vez que lo encuentra, lo pone anterior a este nodo encontrado,
+	asi, dejando el nivel ordenado alfabeticamnete.
+	En caso de que la lista este vacia, agrega el nodo.
+	En caso de que la lista tenga un solo elemento, lo agrega en el orden debido.
+
+	Devuelve: el nodo agregado al nivel
+*/
+struct node* addSortedNewNodeInLevel(struct node** list, char character) {
 	struct node* newNode = createNode(character, 0, 0, 0, 0); // Funcion auxiliar para crear nodos;
 	struct node* curr = *list;
 	
@@ -333,14 +348,12 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 		*list = newNode;
 		return newNode;
 	}
-	
 	// Si es el primer elemento;
 	else if(character < curr->character){
 		*list = newNode;
 		newNode->next = curr;
 		return newNode;
 	}
-	
 	// Si la lista tiene 1 solo nodo, y newNode va segundo;
 	if(curr->next == 0) {
 		curr->next = newNode;
@@ -350,7 +363,6 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 	// Si tiene n>1 elementos;
 	struct node* prev = curr;
 	curr = curr->next;
-	
 	while(curr->next != 0){
 		if(character < curr->character){
 			newNode->next = curr;
@@ -360,7 +372,6 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 		else if(character == curr->character){
 			return curr;
 		}
-		
 		prev = curr;
 		curr = curr->next;
 	}
@@ -370,11 +381,15 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 		curr->next = newNode; // newNode->next ya es 0;
 		return newNode;
 	}
-	
 	return curr;
 }
-///////////////////////////////////////
-////////////////////////////////////////
+
+/*
+	Recorre la lista de palabras borrando individuaemnte cada una. Al finalizar,
+	borra el arreglo en si.
+
+	Modifica: words, liberando su contenido y el mismo puntero.
+*/
 void deleteArrayOfWords(char** words, int wordsCount) {
 	for(int i = 0; i<wordsCount; i++){
 		free(words[i]);
