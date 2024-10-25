@@ -36,7 +36,7 @@ struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWor
 			return 0; // Si la palabra parcial no esta.
 		}
 		prev = curr;
-		curr = curr->down; // Busco siguiente letra dle prefijo
+		curr = curr->down; // Busco siguiente letra del prefijo
 	}
 	return prev;
 }
@@ -62,7 +62,7 @@ void nodeCountAround(struct node* n, int* wordsCount){
 }
 
 /*
-	A partir de un nodo, agrega a el arreglo words todas las palabras desde ese nivel en adelante.
+	A partir de un nodo, agrega al arreglo words todas las palabras desde ese nivel en adelante.
 	
 	Requiere: 
 		* El arreglo words debe ser del mismo tamaño que la cantidad de palabras que hay desde 
@@ -174,10 +174,10 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 			curr = &(findNode->down);
 		}
 	}
-	if(n->end == 1){
+	if(word_len == 0 || n->end == 1){
 		return;
 	}
-	n->word = strDup(word);
+	n->word = word;
 	n->end = 1;
 	kt->totalWords++;
 	return;
@@ -248,7 +248,7 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	char** words = (char**) malloc(sizeof(char*) * *wordsCount);	
 
 	if(i){ // Si el prefijo es una palabra.
-		words[0] = nodo_prefijo->word;
+		words[0] = strDup(nodo_prefijo->word);
 	}
 	
 	addWordsToArray(nodo_prefijo->down, words, &i);

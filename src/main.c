@@ -19,7 +19,6 @@ void findAndPrintAll(struct keysPredict* kt, char* word ) {
     printf("Find: %s = %i\n", word, result==0);
 }
 
-
 int main() {
     // COMPLETAR
 
@@ -28,21 +27,22 @@ int main() {
     // ser borrado / modificado.
 
     // strLen
-    int len = strLen("hola");
-    printf("strLen(\"hola\") -> \"%i\"\n", len);
-    printf("\n");
+    // int len = strLen("hola");
+    // printf("strLen(\"hola\") -> \"%i\"\n", len);
+    // printf("\n");
 
-    // strDup
-    char* dup = strDup("hola");
-    printf("strDup(\"hola\") -> \"%s\"\n", dup);
-    free(dup);
-    printf("\n");
+    // // strDup
+    // char* dup = strDup("hola");
+    // printf("strDup(\"hola\") -> \"%s\"\n", dup);
+    // free(dup);
+    // printf("\n");
 
     // keysPredict
    struct keysPredict* kt = keysPredictNew();
     
     // keysPredict - crear un diccionario
-    keysPredictAddWord(kt, "papanatas");
+    keysPredictAddWord(kt, "weird");
+    keysPredictAddWord(kt, "pap");
     keysPredictAddWord(kt, "zanahoria");
     keysPredictAddWord(kt, "oreja");
     keysPredictAddWord(kt, "ricardo");
@@ -66,34 +66,31 @@ int main() {
     //     printf("%s\n", words[i]);
     // }
     // deleteArrayOfWords(words, wordsCount);
-
     // keysPredict - encontrar palabras ============ PROBADA
-    // findAndPrintAll(kt, "papa");
-    // findAndPrintAll(kt, "pata");
-    // findAndPrintAll(kt, "a");
-    // findAndPrintAll(kt, "zazz");
+    findAndPrintAll(kt, "papa");
+    findAndPrintAll(kt, "pata");
+    findAndPrintAll(kt, "a");
+    findAndPrintAll(kt, "zazz");
 
     // keysPredict - predecir palabras ============ PROBADA
-    // predictAndPrintAll(kt,"or");
-    // predictAndPrintAll(kt,"ab");
-    // predictAndPrintAll(kt,"pa");
-    // predictAndPrintAll(kt,"pap");
-    // predictAndPrintAll(kt,"q");
-    // predictAndPrintAll(kt,"zap");
+    predictAndPrintAll(kt,"or");
+    predictAndPrintAll(kt,"ab");
+    predictAndPrintAll(kt,"pa");
+    predictAndPrintAll(kt,"weird");
+    predictAndPrintAll(kt,"q");
+    predictAndPrintAll(kt,"zap");
 
     // keysPredict - predecir palabras ============== PROBADA
     // keysPredictRemoveWord(kt,"");
-    // keysPredictRemoveWord(kt,"zaz");
-    // keysPredictRemoveWord(kt,"aaa");
-    // keysPredictRemoveWord(kt,"papa");
-    // keysPredictRemoveWord(kt,"pata");
-    // keysPredictRemoveWord(kt,"zanahoria");
+    keysPredictRemoveWord(kt,"zaz");
+    keysPredictRemoveWord(kt,"aaa");
+    keysPredictRemoveWord(kt,"papa");
+    keysPredictRemoveWord(kt,"pata");
+    keysPredictRemoveWord(kt,"zanahoria");
     // keysPredictPrint(kt);
 
     // keysPredict - borrar diccionario
-    // keysPredictDelete(kt);
-    // keysPredictPrint(kt);
-   	// printf("%i\n", kt->totalKeys); // QUE PASA ACA??
+    keysPredictDelete(kt);
 
     return 0;
 }
