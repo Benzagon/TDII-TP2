@@ -144,6 +144,7 @@ struct keysPredict* keysPredictNew() {
     kt->totalWords = 0;
     return kt;
 }
+
 /*
 	Por cada letra de la palabra que se desea agregar, se agrega de
 	forma ordenada al nivel corrspondiente. A la ultima letra le guarda
@@ -174,24 +175,12 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 	kt->totalWords++;
 	return;
 }
+
 /*
 	Recorre los niveles buscando la letra correspondinete al nivel.
 	Si la letra deseada es la ultima de la palabra, asigna a word
 	y a end 0, asi "borrando" la palabra.
 */
-// void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
-//     int word_len = strLen(word);
-// 	struct node* curr = kt->first;
-// 	for(int i = 0;i<word_len; i++){
-// 		curr = findNodeInLevel(&curr, word[i]);
-// 		if (curr->word == word){ // ESTO PUEDE FALLAR
-// 			curr->end = 0;
-// 			curr->word = 0;
-// 		}
-// 		curr = curr->down;
-// 	}
-// }
-
 void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
 	struct node* nodo = keysPredictFind(kt, word);
     if(!nodo) return;
@@ -240,7 +229,7 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	struct node* nodo_prefijo = keysPredictFindPartialWord(kt, partialWord);
 	*wordsCount = 0;
     if(nodo_prefijo == 0){ // Si el prefijo no existe en kt.
-		return NULL; // ESTA BIEN O DEBERIA SER UN PUNTERO A NULL?
+		return NULL;
 	}
 
 	int i = 0; // Primera posición del arreglo.
@@ -260,11 +249,6 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
     return words;
 }
 
-// int keysPredictCountWordAux(struct node* n) {  ==================== QUE ES ESTO?
-
-//     // COMPLETAR
-// }
-
 /*
 	Retorna un arreglo en memoria dinamica con todas las palabras almacenadas en la estructura.
 	
@@ -277,9 +261,7 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 */
 char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
 	if(kt->first == 0){
-		// char** words = (char**) malloc(0);// ->{}
-		// return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
-		return NULL; // ESTA BIEN O DEBERIA SER UN PUNTERO A NULL?
+		return NULL;
 	}
 	char** words = (char**) malloc(sizeof(char*) * kt->totalWords);	
 
@@ -395,37 +377,7 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) { // QU
 ////////////////////////////////////////
 void deleteArrayOfWords(char** words, int wordsCount) {
 	for(int i = 0; i<wordsCount; i++){
-		//printf("por borar %d: %s\n", i, words[i]);
-		free(words[i]); //SE BORRA EL ULTIMO?
-		//printf("borrado %d: %s\n", i, words[i]);
+		free(words[i]);
 	}
 	free(words);
 }
-/*
-int main() {
-	int wordsCount = 2;
-	
-	char** words = (char**)malloc(wordsCount * sizeof(char*));
-	
-	words[0] = (char*)malloc(20 * sizeof(char));  
-	words[1] = (char*)malloc(20 * sizeof(char));
-	//words[2] = (char*)malloc(20 * sizeof(char));
-	//words[3] = (char*)malloc(20 * sizeof(char));
-	
-	words[0] = strDup("Hola");
-	words[1] = strDup("Mundo");
-	//words[2] = strDup("Wooooooooooooooooooooop");
-	//words[3] = strDup("puto");
-	
-	for (int i = 0; i < wordsCount; i++) {
-		printf("Palabra %d: %s\n", i, words[i]);
-	}
-	
-	deleteArrayOfWords(words, wordsCount);
-	for (int i = 0; i < wordsCount; i++) {
-		printf("Palabra %d: %s\n", i, words[i]);
-	}
-	
-	return 0;
-}
-*/

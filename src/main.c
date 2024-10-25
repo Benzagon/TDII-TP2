@@ -91,8 +91,8 @@ int main() {
     // keysPredictPrint(kt);
 
     // keysPredict - borrar diccionario
-    keysPredictDelete(kt);
-    keysPredictPrint(kt);
+    // keysPredictDelete(kt);
+    // keysPredictPrint(kt);
    	// printf("%i\n", kt->totalKeys); // QUE PASA ACA??
 
     return 0;
