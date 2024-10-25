@@ -19,7 +19,7 @@ struct node* createNode(char _character, struct node* _next, int _end, char* _wo
 }
 
 /*
-	Recorre los niveles buscando la letra correspondinete al nivel por cada caracter de partialWord.
+	Recorre los niveles buscando la letra correspondiente al nivel por cada caracter de partialWord.
 	Retorna el ultimo nodo del prefijo.
 	Si el prefijo no esta en keysPredict, retorna 0.
 */
@@ -47,7 +47,7 @@ void nodeCountAround(struct node* n, int* wordsCount){
 	struct node* curr = n;
 	while(curr != 0){
 		if(curr->end == 1){
-			*wordsCount++; // Sumo si encontre el final de una palabra.
+			(*wordsCount)++; // Sumo si encontre el final de una palabra.
 		}
 		if(curr->down != 0){ // Si existe un nivel inferior.
 			nodeCountAround(curr->down, wordsCount); // Cuento todas las palabras desde ese nivel.
@@ -64,17 +64,17 @@ void nodeCountAround(struct node* n, int* wordsCount){
 	
 	Requiere: 
 	El arreglo words debe ser del mismo tamaño que la cantidad de palabras desde ese nivel en adelante.
-	'i' debe ser la primer posición a llenar del arreglo.
+	'i' debe ser un puntero a la primera posición a llenar del arreglo.
 
 	Modifica:
-	'i' es la cantidad de palabras en el arreglo.
+	'*i' es la cantidad de palabras en el arreglo.
 */
-void addWordsToArray(struct node* n, char** words, int i){
+void addWordsToArray(struct node* n, char** words, int* i){
 	struct node* curr = n;
 	while(curr != 0){
 		if(curr->end == 1){
-			words[i] = curr->word;
-			i++;
+			words[*i] = strDup(curr->word); 
+			(*i)++;
 		}
 		if(curr->down != 0){
 			addWordsToArray(curr->down, words, i);
@@ -179,26 +179,27 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 	Si la letra deseada es la ultima de la palabra, asigna a word
 	y a end 0, asi "borrando" la palabra.
 */
-void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
-    int word_len = strLen(word);
-	struct node* curr = kt->first;
-	for(int i = 0;i<word_len; i++){
-		curr = findNodeInLevel(&curr, word[i]);
-		if (curr->word == word){ // ESTO PUEDE FALLAR
-			curr->end = 0;
-			curr->word = 0;
-		}
-		curr = curr->down;
-	}
-}
-
 // void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
-// 	struct node* nodo = keysPredictFind(kt, word);
-//     if(!nodo) return;
-// 	nodo->end = 0;
-// 	nodo->word = 0;
-// 	return;
+//     int word_len = strLen(word);
+// 	struct node* curr = kt->first;
+// 	for(int i = 0;i<word_len; i++){
+// 		curr = findNodeInLevel(&curr, word[i]);
+// 		if (curr->word == word){ // ESTO PUEDE FALLAR
+// 			curr->end = 0;
+// 			curr->word = 0;
+// 		}
+// 		curr = curr->down;
+// 	}
 // }
+
+void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
+	struct node* nodo = keysPredictFind(kt, word);
+    if(!nodo) return;
+	nodo->end = 0;
+	nodo->word = 0;
+	(kt->totalWords)--;
+	return;
+}
 
 /*
 	Recorre los niveles buscando la letra correspondinete al nivel por cada caracter de word.
@@ -207,6 +208,7 @@ void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
 */
 struct node* keysPredictFind(struct keysPredict* kt, char* word) {
 	int word_len = strLen(word);
+	
 	struct node* curr = kt->first;
 	struct node* prev = curr;
 	for(int i = 0; i<word_len; i++){
@@ -217,8 +219,9 @@ struct node* keysPredictFind(struct keysPredict* kt, char* word) {
 		prev = curr;
 		curr = curr->down;
 	}
-	if(prev->end != 1 && prev->word != word){
-		return 0; // Si la palabra no esta guardada.
+	
+	if(prev->end != 1 || word_len == 0){
+		return 0; // Si la palabra no esta guardada o es "".
 	}
 	return prev;
 }
@@ -233,20 +236,18 @@ struct node* keysPredictFind(struct keysPredict* kt, char* word) {
 	Un arreglo de tamaño wordsCount con las palabras.
 	Obs: Deberá ser liberado luego de llamar la función.
 */
-char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount) {
+char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount) {	
 	struct node* nodo_prefijo = keysPredictFindPartialWord(kt, partialWord);
 	*wordsCount = 0;
     if(nodo_prefijo == 0){ // Si el prefijo no existe en kt.
-		char** words = (char**) malloc(0);// ->{}
-		return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
+		return NULL; // ESTA BIEN O DEBERIA SER UN PUNTERO A NULL?
 	}
 
 	int i = 0; // Primera posición del arreglo.
 	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.
-		*wordsCount++;
+		(*wordsCount)++;
 		i++;
 	}
-
 	nodeCountAround(nodo_prefijo->down, wordsCount); // Contar cuantas palabras hay debajo de partialWord.
 	char** words = (char**) malloc(sizeof(char*) * *wordsCount);	
 
@@ -254,7 +255,7 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 		words[0] = nodo_prefijo->word;
 	}
 	
-	addWordsToArray(nodo_prefijo->down, words, i);
+	addWordsToArray(nodo_prefijo->down, words, &i);
 
     return words;
 }
@@ -276,12 +277,16 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 */
 char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
 	if(kt->first == 0){
-		char** words = (char**) malloc(0);// ->{}
-		return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
+		// char** words = (char**) malloc(0);// ->{}
+		// return words; // ES LO MISMO QUE RETORNAR 0?? PREGUNTAR
+		return NULL; // ESTA BIEN O DEBERIA SER UN PUNTERO A NULL?
 	}
 	char** words = (char**) malloc(sizeof(char*) * kt->totalWords);	
-	addWordsToArray(kt->first, words, 0);
+
+	int i = 0;
+	addWordsToArray(kt->first, words, &i);
 	*wordsCount = kt->totalWords; 
+	
 	return words;
 }
 
@@ -289,16 +294,13 @@ char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
 	Borra la estructura keysPredict completa (palabras, nodos, nodo raiz).
 */
 void keysPredictDelete(struct keysPredict* kt) {
-	// Borrar todas las palabras:
-	int totalWords = 0;
+	int totalWords = 0; // Borrar todas las palabras:
 	char** words = keysPredictListAll(kt, &totalWords);
     deleteArrayOfWords(words, totalWords);
 
-	// Borrar todos los nodos:
-	abortLevel(kt->first);
+	abortLevel(kt->first); // Borrar todos los nodos:
 
-	// Borrar keysPredict:
-	free(kt);
+	free(kt); // Borrar keysPredict:
 }
 
 void keysPredictPrint(struct keysPredict* kt) {
