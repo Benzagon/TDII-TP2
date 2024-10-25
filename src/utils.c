@@ -124,10 +124,11 @@ int strLen(char* src) {
 }
 
 /*
-	Copia en c (un puntero a una variable dinámica; del mismo tamaño 
-	que src) todos los caracteres de src. Agrega un NULL al final para 
-	indicar finalizo el string. 
-	Dev: el puntero al nuevo string.
+	Hace una copia de src, guardandola de forma dinamica. Agrega un NULL al final para indicar que
+	finalizo el string. 
+
+	Devuelve: el puntero al nuevo string.
+
 	Obs: Luego de llamar la funcion, la memoria debe ser liberada.
 */
 char* strDup(char* src) {
@@ -153,9 +154,12 @@ struct keysPredict* keysPredictNew() {
 }
 
 /*
-	Por cada letra de la palabra que se desea agregar, se agrega de
-	forma ordenada al nivel corrspondiente. A la ultima letra le guarda
-	en word la palabra y en end guarda un 1.
+	Por cada letra de la palabra que se desea agregar, se agrega de forma ordenada al nivel 
+	corrspondiente. 
+	
+	Modifica: 
+		* keysPredict, agregando a sus niveles las letras de la palabra.
+		* Al nodo final de la palabra, le guarda en word la palabra y en end un 1.
 */
 void keysPredictAddWord(struct keysPredict* kt, char* word) {
     int word_len = strLen(word);
@@ -168,15 +172,16 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 		if(!findNode){
 			n = addSortedNewNodeInLevel(curr, word[i]); // Agrega de forma ordenada el caracter al nivel correspondiente
 			kt->totalKeys++;
-			curr = &(n->down); // Bajo de nivel
+			curr = &(n->down); // Baja de nivel
 		}
-		else {
-			curr = &(findNode->down);
+		else { // Si el nodo ya se encontraba en el nivel...
+			curr = &(findNode->down); // Baja de nivel
 		}
 	}
 	if(word_len == 0 || n->end == 1){
 		return;
 	}
+	// Actualiza los valores del keysPredict
 	n->word = word;
 	n->end = 1;
 	kt->totalWords++;
