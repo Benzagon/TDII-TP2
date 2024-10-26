@@ -41,20 +41,10 @@ int main() {
    struct keysPredict* kt = keysPredictNew();
     
     // keysPredict - crear un diccionario
-    keysPredictAddWord(kt, "weird");
-    keysPredictAddWord(kt, "pap");
-    keysPredictAddWord(kt, "zanahoria");
-    keysPredictAddWord(kt, "oreja");
-    keysPredictAddWord(kt, "ricardo");
-    keysPredictAddWord(kt, "zaz");
-    keysPredictAddWord(kt, "a");
-    keysPredictAddWord(kt, "");
-    keysPredictAddWord(kt, "b");
-    keysPredictAddWord(kt, "ab");
-    keysPredictAddWord(kt, "abfff");
-    keysPredictAddWord(kt, "abfgato");
-    keysPredictAddWord(kt, "bebe");
-    keysPredictAddWord(kt, "pata");
+    keysPredictAddWord(kt, "como");
+    keysPredictAddWord(kt, "su");
+    keysPredictAddWord(kt, "que");
+    keysPredictAddWord(kt, "el");
     // keysPredictPrint(kt);
 
     // keysPredict - listar todas las palabras ============ PROBADA
@@ -67,26 +57,26 @@ int main() {
     // }
     // deleteArrayOfWords(words, wordsCount);
     // keysPredict - encontrar palabras ============ PROBADA
-    findAndPrintAll(kt, "papa");
-    findAndPrintAll(kt, "pata");
-    findAndPrintAll(kt, "a");
-    findAndPrintAll(kt, "zazz");
+    // findAndPrintAll(kt, "papa");
+    // findAndPrintAll(kt, "pata");
+    // findAndPrintAll(kt, "a");
+    // findAndPrintAll(kt, "zazz");
 
     // keysPredict - predecir palabras ============ PROBADA
-    predictAndPrintAll(kt,"or");
-    predictAndPrintAll(kt,"ab");
-    predictAndPrintAll(kt,"pa");
-    predictAndPrintAll(kt,"weird");
-    predictAndPrintAll(kt,"q");
-    predictAndPrintAll(kt,"zap");
+    predictAndPrintAll(kt,"c");
+    // predictAndPrintAll(kt,"ab");
+    // predictAndPrintAll(kt,"pa");
+    // predictAndPrintAll(kt,"weird");
+    // predictAndPrintAll(kt,"q");
+    // predictAndPrintAll(kt,"zap");
 
     // keysPredict - predecir palabras ============== PROBADA
     // keysPredictRemoveWord(kt,"");
-    keysPredictRemoveWord(kt,"zaz");
-    keysPredictRemoveWord(kt,"aaa");
-    keysPredictRemoveWord(kt,"papa");
-    keysPredictRemoveWord(kt,"pata");
-    keysPredictRemoveWord(kt,"zanahoria");
+    // keysPredictRemoveWord(kt,"zaz");
+    // keysPredictRemoveWord(kt,"aaa");
+    // keysPredictRemoveWord(kt,"papa");
+    // keysPredictRemoveWord(kt,"pata");
+    // keysPredictRemoveWord(kt,"zanahoria");
     // keysPredictPrint(kt);
 
     // keysPredict - borrar diccionario

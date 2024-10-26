@@ -251,9 +251,9 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	}
 	nodeCountAround(nodo_prefijo->down, wordsCount); // Contar cuantas palabras hay debajo de partialWord.
 	char** words = (char**) malloc(sizeof(char*) * *wordsCount);	
-
 	if(i){ // Si el prefijo es una palabra.
 		words[0] = strDup(nodo_prefijo->word);
+		printf("=====> PREFIJO ES PALABRA\n");
 	}
 	
 	addWordsToArray(nodo_prefijo->down, words, &i);
