@@ -78,7 +78,7 @@ void addWordsToArray(struct node* n, char** words, int* i){
 	struct node* curr = n;
 	while(curr != 0){
 		if(curr->end == 1){ 
-			words[*i] = strDup(curr->word); // Agrega a words la palabra encontrada.
+			words[*i] = curr->word; // Agrega a words la palabra encontrada. (ESTO ESTABA DUPED, CHEQUEAR)
 			(*i)++;
 		}
 		if(curr->down != 0){
@@ -182,8 +182,9 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
 		return;
 	}
 	// Actualiza los valores del keysPredict
-	n->word = word;
+	n->word = strDup(word);
 	n->end = 1;
+
 	kt->totalWords++;
 	return;
 }
@@ -253,11 +254,8 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	char** words = (char**) malloc(sizeof(char*) * *wordsCount);	
 	if(i){ // Si el prefijo es una palabra.
 		words[0] = strDup(nodo_prefijo->word);
-		printf("=====> PREFIJO ES PALABRA\n");
 	}
-	
 	addWordsToArray(nodo_prefijo->down, words, &i);
-
     return words;
 }
 
@@ -364,11 +362,10 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) {
 		curr->next = newNode;
 		return newNode;
 	}
-	
 	// Si tiene n>1 elementos;
 	struct node* prev = curr;
 	curr = curr->next;
-	while(curr->next != 0){
+	while(curr != 0){
 		if(character < curr->character){
 			newNode->next = curr;
 			prev->next = newNode;
@@ -380,13 +377,13 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) {
 		prev = curr;
 		curr = curr->next;
 	}
-	
+
 	// Verificar ultimo elemento;
-	if(character != curr->character){
-		curr->next = newNode; // newNode->next ya es 0;
+	if(character != prev->character){
+		prev->next = newNode; // newNode->next ya es 0;
 		return newNode;
 	}
-	return curr;
+	return prev;
 }
 
 /*

@@ -41,11 +41,12 @@ int main() {
    struct keysPredict* kt = keysPredictNew();
     
     // keysPredict - crear un diccionario
+    keysPredictAddWord(kt, "zapallo");
     keysPredictAddWord(kt, "como");
     keysPredictAddWord(kt, "su");
     keysPredictAddWord(kt, "que");
     keysPredictAddWord(kt, "el");
-    // keysPredictPrint(kt);
+    keysPredictPrint(kt);
 
     // keysPredict - listar todas las palabras ============ PROBADA
     // char** words;
@@ -63,7 +64,7 @@ int main() {
     // findAndPrintAll(kt, "zazz");
 
     // keysPredict - predecir palabras ============ PROBADA
-    predictAndPrintAll(kt,"c");
+    predictAndPrintAll(kt,"e");
     // predictAndPrintAll(kt,"ab");
     // predictAndPrintAll(kt,"pa");
     // predictAndPrintAll(kt,"weird");

@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         keysPredictAddWord(kt, buffer);
     }
     fclose(archivo);
-    keysPredictPrint(kt);
+    
     // Predecir
     char** words;
     int wordsCount;
