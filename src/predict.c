@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
     for(int i=0; i<wordsCount; i++) {
         printf("\t%s\n", words[i]);
     }
+
     deleteArrayOfWords(words, wordsCount);
 
     // Borrar el keysPredict

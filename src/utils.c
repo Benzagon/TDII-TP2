@@ -83,10 +83,10 @@ void addWordsToArray(struct node* n, char** words, int* i, int dupFlag){
 	while(curr != 0){
 		if(curr->end == 1){
 			if(dupFlag){
-				words[*i] = strDup(curr->word); // Agrega a words la palabra encontrada. (ESTO ESTABA DUPED, CHEQUEAR)
+				words[*i] = strDup(curr->word); // Agrega a words la palabra encontrada. (Duped)
 			}
 			else{
-				words[*i] = curr->word; // Agrega a words la palabra encontrada. (ESTO ESTABA DUPED, CHEQUEAR)
+				words[*i] = curr->word; // Agrega a words la palabra encontrada. (originak)
 			}
 			(*i)++;
 		}
@@ -175,25 +175,26 @@ void keysPredictAddWord(struct keysPredict* kt, char* word) {
     int word_len = strLen(word);
 	//dudoso, la idea es guardar el pointer del primer nodo del primer nivel
 	struct node** curr = &(kt->first);
-	struct node* n;
+	struct node* prev;
 	struct node* findNode;
 	for(int i = 0; i<word_len;i++){
 		findNode = findNodeInLevel(curr, word[i]);
 		if(!findNode){
-			n = addSortedNewNodeInLevel(curr, word[i]); // Agrega de forma ordenada el caracter al nivel correspondiente
+			prev = addSortedNewNodeInLevel(curr, word[i]); // Agrega de forma ordenada el caracter al nivel correspondiente
 			kt->totalKeys++;
-			curr = &(n->down); // Baja de nivel
+			curr = &(prev->down); // Baja de nivel
 		}
 		else { // Si el nodo ya se encontraba en el nivel...
+			prev = *curr;
 			curr = &(findNode->down); // Baja de nivel
 		}
 	}
-	if(word_len == 0 || n->end == 1){
+	if(word_len == 0 || prev->end == 1){
 		return;
 	}
 	// Actualiza los valores del keysPredict
-	n->word = strDup(word);
-	n->end = 1;
+	prev->word = strDup(word);
+	prev->end = 1;
 
 	kt->totalWords++;
 	return;
@@ -208,6 +209,7 @@ void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
 	struct node* nodo = keysPredictFind(kt, word);
     if(!nodo) return;
 	nodo->end = 0;
+	free(nodo->word);
 	nodo->word = 0;
 	(kt->totalWords)--;
 	return;
@@ -249,6 +251,7 @@ struct node* keysPredictFind(struct keysPredict* kt, char* word) {
 	Obs: Deberá ser liberado luego de llamar la función.
 */
 char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount) {
+	int wordLen = strLen(partialWord); 
 	struct node* nodo_prefijo = keysPredictFindPartialWord(kt, partialWord);
 	*wordsCount = 0;
     if(nodo_prefijo == 0){ // Si el prefijo no existe en kt.
@@ -256,18 +259,22 @@ char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount
 	}
 
 	int i = 0; // Primera posición del arreglo.
-	if(nodo_prefijo->end == 1){ // Si el prefijo es una palabra.
+	if(nodo_prefijo->end == 1 && wordLen > 0){ // Si el prefijo es una palabra.
 		(*wordsCount)++;
 		i++;
 	}
-	nodeCountAround(nodo_prefijo->down, wordsCount); // Contar cuantas palabras hay debajo de partialWord.
+	
+	if(wordLen > 0) { nodeCountAround(nodo_prefijo->down, wordsCount); }// Contar cuantas palabras hay debajo de partialWord.
+	else { nodeCountAround(nodo_prefijo, wordsCount); }
+	
 	char** words = (char**) malloc(sizeof(char*) * *wordsCount);
 	if(i){ // Si el prefijo es una palabra.
 		words[0] = strDup(nodo_prefijo->word);
 	}
 	int dupFlag = 1;
-	addWordsToArray(nodo_prefijo->down, words, &i, dupFlag); // Agregar a 'words' una copia de todas las palabras de la estructura.
-    return words;
+	if(wordLen > 0) { addWordsToArray(nodo_prefijo->down, words, &i, dupFlag); } // Agregar a 'words' una copia de todas las palabras de la estructura.
+    else { addWordsToArray(nodo_prefijo, words, &i, dupFlag); }
+	return words;
 }
 
 /*
@@ -284,7 +291,6 @@ char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
 		return NULL;
 	}
 	char** words = (char**) malloc(sizeof(char*) * kt->totalWords);
-
 	int i = 0;
 	int dupFlag = 0;
 	addWordsToArray(kt->first, words, &i, dupFlag); // Agregar las palabras originales a 'words'.
@@ -404,8 +410,10 @@ struct node* addSortedNewNodeInLevel(struct node** list, char character) {
 	Modifica: words, liberando su contenido y el mismo puntero.
 */
 void deleteArrayOfWords(char** words, int wordsCount) {
+	int totalFreed = 0;
 	for(int i = 0; i<wordsCount; i++){
 		free(words[i]);
+		totalFreed++;
 	}
 	free(words);
 }
