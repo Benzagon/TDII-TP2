@@ -249,6 +249,15 @@ void testKeysPredict3(){
     }
     printf("================= FOUND %i OUT OF %i WORDS IN keysPredict (5) =================\n", asserted, 100);
 
+	/////////////////////////////////////////////////////////
+	
+	/*
+	int totalWords = kt->totalWords;
+	for(int i = 0; i<50; i+=2){
+		keysPredictRemoveWord(kt, words[i]);
+	}
+	assertIntEquals(totalWords, kt->totalWords);
+	*/
 }
 
 
