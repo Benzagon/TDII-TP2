@@ -24,7 +24,7 @@ void findAndPrintAll(struct keysPredict* kt, char* word ) {
 	Agrega al keysPredict todas las palabras pasadas por parametros
 
 	Requiere:
-		* size debe ser el tamanio que words
+		* size debe ser el tamaño que words
 */
 void fillKeysPredict(struct keysPredict* kt, char** words, int size){
 	for(int i = 0; i<size; i++){        
@@ -147,7 +147,10 @@ void testStrDup() {
 }
 
 ////////// TESTS PARA keysPredict ////////
-
+/*
+	TEST 1:
+	Busca palabras y prefijos que se encuentran en el keysPredict
+*/
 void testKeysPredict1() {
 	char* words[] = {"alfajor", "canoa", "rinoceronte", "casa", "rino"}; 
 	int totalWords = 5;
@@ -206,6 +209,10 @@ void testKeysPredict1() {
 	keysPredictDelete(kt);
 }
 
+/*
+	TEST 2:
+	Busca tanto palabras que se encuentran en el keysPredict como que no
+*/
 void testKeysPredict2() {
 	char* wordsKt[] = {"alfajor", "canoa", "rinoceronte", "casa", "rino"}; 
 	char* wordsToFind[] = {"alfajor", "zapallo", "canoa", "telefono", "rinoceronte", "casa", "rino"}; 
@@ -240,6 +247,11 @@ int validate(char* w) {
 	return 1;
 }
 
+
+/*
+	TEST 3:
+	Crea un keysPredict de 100 palabras, le borra la mitad de las palabras y hace predicciones de prefijos de dos letras.
+*/
 void testKeysPredict3(){
 	
 	struct keysPredict* kt = keysPredictNew();
@@ -329,8 +341,7 @@ int main() {
 	printf("\n=> RUNNING KEYSPREDICT TESTS\n");
 	testKeysPredict1(); // Busca palabras y prefijos que se encuentran en el keysPredict
 	testKeysPredict2(); // Busca tanto palabras que se encuentran en el keysPredict como que no
-	// Crea un keysPredict de 100 palabras, le borra la mitad de las palabras y hace predicciones de prefijos de dos letras
-	testKeysPredict3();  
+	testKeysPredict3();  // Crea un keysPredict de 100 palabras, le borra la mitad de las palabras y hace predicciones de prefijos de dos letras
 
 	return 0;
 }
