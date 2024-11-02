@@ -1,435 +1,294 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <string.h>
+#include "utils.h"
 
-/////// AUXILIARES PROPIAS ////////
-/*
-Crea un nodo en memoria dinamica con los valores pasados por parametro.
-
-Devuelve: 
-* El nuevo nodo.
-*/
-struct node* createNode(char _character, struct node* _next, int _end, char* _word, struct node* _down){
-	struct node* n = (struct node*) malloc(sizeof(struct node));
-	n->character = _character;
-	n->next = _next;
-	n->end = _end;
-	n->word = _word;
-	n->down = _down;
-	return n;
-}
-	
-/*
-	Recorre los niveles buscando la letra correspondiente al nivel por cada caracter de partialWord.
-	
-	Devuelve:
-	* 0 si el prefijo no esta en keysPredict.
-	* El ultimo nodo del prefijo si el prefijo esta en keysPredict.
-*/
-struct node* keysPredictFindPartialWord(struct keysPredict* kt, char* partialWord) {
-	int word_len = strLen(partialWord);
-	struct node* curr = kt->first;
-	struct node* prev = curr;
-	for(int i = 0; i<word_len; i++){
-		curr = findNodeInLevel(&curr, partialWord[i]);
-		if(curr == 0){
-			return 0; // Si la palabra parcial no esta.
-		}
-		prev = curr;
-		curr = curr->down; // Busco siguiente letra del prefijo
+void predictAndPrintAll(struct keysPredict* kt, char* partialWord ) {
+	char** words;
+	int wordsCount;
+	words = keysPredictRun(kt, partialWord, &wordsCount);
+	printf("Predicts: %s = ", partialWord);
+	for(int i=0; i<wordsCount; i++) {
+		printf("%s,", words[i]);
 	}
-	return prev;
-}
-	
-/*
-	A partir de un nodo, cuenta cuantas palabras existen desde ese nivel en adelante.
-	
-	Modifica: 
-	* wordsCount: agregando la cantidad de palabras encontradas. 
-	* Si el nodo pasado por parametro es NULL, no modifica wordsCount.
-*/
-void nodeCountAround(struct node* n, int* wordsCount){
-	struct node* curr = n;
-	while(curr != 0){
-		if(curr->end == 1){
-			(*wordsCount)++; // Sumo a wordsCount si encontre el final de una palabra.
-		}
-		if(curr->down != 0){ // Si existe un nivel inferior...
-			nodeCountAround(curr->down, wordsCount); // Cuento todas las palabras desde ese nivel.
-		}
-		curr = curr->next;
-	}
-	return;
+	printf("\n");
+	deleteArrayOfWords(words, wordsCount);
 }
 
-/*
-	A partir de un nodo, agrega al arreglo words todas las palabras desde ese nivel en adelante.
-		
-	Requiere:
-		* El arreglo words debe ser del mismo tamaño que la cantidad de palabras que hay desde
-		ese nivel en adelante.
-		* i debe ser un puntero a la primera posición a llenar del arreglo.
-		* Si dupFlag es 1, las palabras en el arreglo words serán copias en memoria dinámica las palabras encontradas.
-		Si duplag es 0, serán los punteros a las palabras de los nodos.
-		
-	Modifica:
-		* En i queda la cantidad de palabras en el arreglo.
-		* En words se agregan las palabras en cuestión. Si el nodo pasado por parametro es NULL,
-		no modifica words.
-*/
-void addWordsToArray(struct node* n, char** words, int* i, int dupFlag){
-	struct node* curr = n;
-	while(curr != 0){
-		if(curr->end == 1){
-			if(dupFlag){
-				words[*i] = strDup(curr->word); // Agrega a words la palabra encontrada. (Duped)
-			}
-			else{
-				words[*i] = curr->word; // Agrega a words la palabra encontrada. (originak)
-			}
-			(*i)++;
-		}
-		if(curr->down != 0){
-			addWordsToArray(curr->down, words, i, dupFlag); // Busca la palabra en el nivel de abajo.
-		}
-		curr = curr->next; // Busca siguiente palabra
-	}
-	return;
+void findAndPrintAll(struct keysPredict* kt, char* word ) {
+	struct node* result = keysPredictFind(kt, word);
+	printf("Find: %s = %i\n", word, result==0);
 }
-	
-/*
-	Recorre el nivel del nodo borrando (liberando la memoria) todos los niveles desde el del mismo
-	hasta los ultimos.
-		
-	Modifica: 
-		* keysPredict, liberando todo desde el nivel especificado.
-*/
-void abortLevel(struct node* n){
-	struct node* curr = n;
-	struct node* prev;
-	while(curr){
-		if(curr->down){
-			abortLevel(curr->down); // Si el nodo posee otro abajo, borra ese primero
-		}
-		prev = curr;
-		curr = curr->next;
-		free(prev); // Borra el nodo una vez que no posee ninguno abajo
-	}
-	return;
-}
-	
-/*
-	Recorre los chars del arreglo src hasta encontrase con un NULL ('\0'). Este indica que finalizo
-	el string, es decir, no hay mas elementos en el arreglo.
 
-	Devuelve: la cantidad de chars del arreglo.
-*/
-int strLen(char* src) {
+void fillKeysPredict(struct keysPredict* kt, char** words, int size){
+	for(int i = 0; i<size; i++){        
+		keysPredictAddWord(kt, words[i]);
+	}
+}
+	
+int assertStrEquals(char* val1, char* val2) {
 	int i = 0;
-	while (src[i]!='\0'){
+	while (val1[i] == val2[i]){
+		if(val1[i] == '\0' && val2[i] == '\0'){
+			return 1;
+		}
 		i++;
 	}
-	return i;
+	printf("----------------- ERROR ASSERTING STR EQUALS: %s != %s -----------------\n", val1, val2);
+	return 0;
 }
-	
-/*
-	Hace una copia de src, guardandola de forma dinamica. Agrega un NULL al final para indicar que
-	finalizo el string.
-	
-	Devuelve: el puntero al nuevo string.
-	
-	Obs: Luego de llamar la funcion, la memoria debe ser liberada.
-*/
-char* strDup(char* src) {
-	int len = strLen(src);
-	char* c = (char*) malloc( sizeof(char) * (len + 1) );
-	int i = 0;
-	while (src[i]!='\0'){
-		c[i] = src[i];
-		i++;
+
+int assertIntEquals(int val1, int val2) {
+	if(val1 == val2) {
+		return 1;
 	}
-	c[len] = '\0';
-	return c;
+	printf("----------------- ERROR ASSERTING INT EQUALS: %i != %i -----------------\n", val1, val2);
+	return 0;
 }
-	
-// Keys Predict
-	
-struct keysPredict* keysPredictNew() {
-	struct keysPredict* kt = (struct keysPredict*)malloc(sizeof(struct keysPredict));
-	kt->first = 0;
-	kt->totalKeys = 0;
-	kt->totalWords = 0;
-	return kt;
-}
-	
-/*
-	Por cada letra de la palabra que se desea agregar, se agrega de forma ordenada al nivel
-	corrspondiente.
-	
-	Modifica:
-		* keysPredict, agregando a sus niveles las letras de la palabra.
-		* Al nodo final de la palabra, le guarda en word la palabra y en end un 1.
-*/
-void keysPredictAddWord(struct keysPredict* kt, char* word) {
-	int word_len = strLen(word);
-	struct node** curr = &(kt->first);
-	struct node* prev;
-	struct node* findNode;
-	for(int i = 0; i<word_len;i++){
-		findNode = findNodeInLevel(curr, word[i]);
-		if(!findNode){
-			prev = addSortedNewNodeInLevel(curr, word[i]); // Agrega de forma ordenada el caracter al nivel correspondiente
-			kt->totalKeys++;
-			curr = &(prev->down); // Baja de nivel
-		}
-		else { // Si el nodo ya se encontraba en el nivel...
-			prev = *curr;
-			curr = &(findNode->down); // Baja de nivel
-		}
+
+int assertArrayOfStrEquals(char** val1, char** val2, int size, int* asserted) {
+	*asserted = 0;
+	for(int i = 0; i<size; i++){
+		*asserted += assertStrEquals(val1[i], val2[i]);
 	}
-	if(word_len == 0 || prev->end == 1){
-		return;
-	}
-	// Actualiza los valores del keysPredict
-	prev->word = strDup(word);
-	prev->end = 1;
-	
-	kt->totalWords++;
-	return;
-}
-	
-/*
-	Recorre los niveles buscando el nodo final de la palabra y "borrandola".
-	
-	Modifica: Del nodo final de la palabra a borrar (si es que fue encontrado):
-		*nodo->word, modifica el atributo word del nodo guardando un 0.
-		*nodo->end, modifica el atributo end del nodo guardando un 0.
-*/
-void keysPredictRemoveWord(struct keysPredict* kt, char* word) {
-	struct node* nodo = keysPredictFind(kt, word);
-	if(!nodo) return;
-	nodo->end = 0;
-	free(nodo->word);
-	nodo->word = 0;
-	(kt->totalWords)--;
-	return;
-}
-	
-/*
-	Recorre los niveles buscando el nodo final de la palabra, de caso de encontrar un nodo
-	que en nodo->word tenga la palabra a buscar, significa que encontramos la palabra.
-	
-	Devuelve:
-		* En caso de encontrar la palabra, el nodo donde se encuentra.
-		* En caso de no encontrar la palabra, 0.
-*/
-struct node* keysPredictFind(struct keysPredict* kt, char* word) {
-	int word_len = strLen(word);
-	
-	struct node* curr = kt->first;
-	struct node* prev = curr;
-	for(int i = 0; i<word_len; i++){
-		curr = findNodeInLevel(&curr, word[i]);
-		if(curr == 0){
-			return 0; // Si la palabra no esta.
-		}
-		prev = curr;
-		curr = curr->down;
-	}
-	
-	if(prev->end != 1 || word_len == 0){
-		return 0; // Si la palabra no esta guardada o es "".
-	}
-	return prev;
-}
-	
-/*
-	Dadas las primeras letras de una palabra 'partialWord', busca todas las palabras que contenga el prefijo indicado.
-	
-	Modifca: En wordsCount, cuantas palabras existen en los niveles por debajo del último nodo del prefijo.
-	
-	Devuelve: Un arreglo de tamaño wordsCount con las palabras.
-	
-	Obs: Deberá ser liberado luego de llamar la función.
-*/
-char** keysPredictRun(struct keysPredict* kt, char* partialWord, int* wordsCount) {
-	int wordLen = strLen(partialWord); 
-	struct node* nodo_prefijo = keysPredictFindPartialWord(kt, partialWord);
-	*wordsCount = 0;
-	if(nodo_prefijo == 0){ // Si el prefijo no existe en kt.
-		return NULL;
-	}
-	
-	int i = 0; // Primera posición del arreglo.
-	if(nodo_prefijo->end == 1 && wordLen > 0){ // Si el prefijo es una palabra.
-		(*wordsCount)++;
-		i++;
-	}
-	
-	if(wordLen > 0) { nodeCountAround(nodo_prefijo->down, wordsCount); }// Contar cuantas palabras hay debajo de partialWord.
-	else { nodeCountAround(nodo_prefijo, wordsCount); }
-	
-	char** words = (char**) malloc(sizeof(char*) * *wordsCount);
-	if(i){ // Si el prefijo es una palabra.
-		words[0] = strDup(nodo_prefijo->word);
-	}
-	int dupFlag = 1;
-	if(wordLen > 0) { addWordsToArray(nodo_prefijo->down, words, &i, dupFlag); } // Agregar a 'words' una copia de todas las palabras de la estructura.
-	else { addWordsToArray(nodo_prefijo, words, &i, dupFlag); }
-	return words;
-}
-	
-/*
-	Crea un arreglo en memoria dinamica con los punteros a todas las palabras almacenadas en la estructura.
-	
-	Modifca: En wordsCount: cuantas palabras existen en la estructura.
-	
-	Devuelve: Un arreglo de tamaño wordsCount con las palabras.
-*/
-char** keysPredictListAll(struct keysPredict* kt, int* wordsCount) {
-	if(kt->first == 0){
-		return NULL;
-	}
-	char** words = (char**) malloc(sizeof(char*) * kt->totalWords);
-	int i = 0;
-	int dupFlag = 0;
-	addWordsToArray(kt->first, words, &i, dupFlag); // Agregar las palabras originales a 'words'.
-	*wordsCount = kt->totalWords;
-	
-	return words;
-}
-	
-/*
-	Crea una lista con todas las palabras del keysPredict, las borra, despues borralas palabras
-	de la lista y por ultimo borra el keysPredict (nodo raiz).
-	
-	Modifica:
-		* Libera de la memoria las palabras del keysPredict.
-		* Libera de la memoria todos los nodos del keysPredict.
-		* Libera de la memoria el keysPredict en si.
-*/
-void keysPredictDelete(struct keysPredict* kt) {
-	int totalWords = 0; // Borrar todas las palabras:
-	char** words = keysPredictListAll(kt, &totalWords);
-	deleteArrayOfWords(words, totalWords);
-	
-	abortLevel(kt->first); // Borrar todos los nodos:
-	
-	free(kt); // Borrar keysPredict:
-}
-	
-void keysPredictPrint(struct keysPredict* kt) {
-	printf("--- Predict --- Keys: %i Words: %i\n", kt->totalKeys, kt->totalWords);
-	keysPredictPrintAux(kt->first, 0);
-	printf("---\n");
-}
-	
-void keysPredictPrintAux(struct node* n, int level) {
-	if(!n) return;
-	struct node* current = n;
-	while(current) {
-		for(int i=0; i<level;i++) printf(" |   ");
-			if(current->end) {
-				printf("[%c]\n",current->character);
-			} else  {
-				printf(" %c \n",current->character);
-			}
-			keysPredictPrintAux(current->down, level+1);
-			current = current->next;
-		}
-	}
-}
-	
-// Auxiliar functions
-	
-/*
-	Recorre la lista hasta encontrar el caracter deseado. 
-	
-	Devuelve:
-		* Si lo encuentra, devuelve la direccion del nodo. 
-		* Si no lo encuentra, devuelve 0.
-*/
-struct node* findNodeInLevel(struct node** list, char character) {
-	struct node* curr = *list;
-	while(curr != 0){
-		if(curr->character == character){
-			return curr;
-		}
-		curr = curr->next;
+	if(*asserted == size){
+		return 1;
 	}
 	return 0;
 }
-	
-/*
-	Recorre el nivel hasta que encuentra un nodo cuyo caracter posee un valor de ASCII mayor al
-	del caracter a agregar. Una vez que lo encuentra, lo pone anterior a este nodo encontrado,
-	asi, dejando el nivel ordenado alfabeticamnete.
-	
-	Modifica:
-		* En caso de que la lista este vacia, agrega el nodo. 
-		* En caso de que la lista tenga un elemento o mas, lo agrega modificando el node->next
-		de los nodos necesarios para que asi, quede el nivel ordenado.
-	
-	Devuelve: el nodo agregado al nivel.
-*/
-struct node* addSortedNewNodeInLevel(struct node** list, char character) {
-	struct node* newNode = createNode(character, 0, 0, 0, 0); // Funcion auxiliar para crear nodos;
-	struct node* curr = *list;
-	
-	// Si list es vacia;
-	if(curr == 0){
-		*list = newNode;
-		return newNode;
+
+int assertArrayOfIntEquals(int* val1, int* val2, int size, int* asserted) {
+	*asserted = 0;
+	for(int i = 0; i<size; i++){
+		*asserted += assertIntEquals(val1[i], val2[i]);
 	}
-	// Si es el primer elemento;
-	else if(character < curr->character){
-		*list = newNode;
-		newNode->next = curr;
-		return newNode;
+	if(*asserted == size){
+		return 1;
 	}
-	// Si la lista tiene 1 solo nodo, y newNode va segundo;
-	if(curr->next == 0) {
-		curr->next = newNode;
-		return newNode;
-	}
-	// Si tiene n>1 elementos;
-	struct node* prev = curr;
-	curr = curr->next;
-	while(curr != 0){
-		if(character < curr->character){
-			newNode->next = curr;
-			prev->next = newNode;
-			return newNode;
-		}
-		else if(character == curr->character){
-			return curr;
-		}
-		prev = curr;
-		curr = curr->next;
-	}
-	
-	// Verificar ultimo elemento;
-	if(character != prev->character){
-		prev->next = newNode; // newNode->next ya es 0;
-		return newNode;
-	}
-	return prev;
+	return 0;
 }
-	
-/*
-	Recorre la lista de palabras borrando individuaemnte cada una. Al finalizar,
-	borra el arreglo en si.
-	
-	Modifica: words:
-		* Liberando de la memoria cada palbra del arreglo.
-		* Libera de la memoria el puntero del arreglo.
-*/
-void deleteArrayOfWords(char** words, int wordsCount) {
-	int totalFreed = 0;
-	for(int i = 0; i<wordsCount; i++){
-		free(words[i]);
-		totalFreed++;
+
+////////// TESTS PARA strLen() ////////
+void testStrLen() {
+	int asserted = 0;
+	int size = 3;
+	int output[] = {
+		strLen(""), // str vacio
+		strLen("1"), // str 1 caracter
+		strLen("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") // str todos los caracteres alfanumericos
+	};
+	int expected_output[] = {
+		0,
+		1,
+		62
+	};
+	assertArrayOfIntEquals(output, expected_output, size, &asserted);
+	printf("================= PASSED %i OUT OF %i TESTS FOR strLen() =================\n", asserted, size);
+}
+
+////////// TESTS PARA strDup() ////////
+void testStrDup() {
+	int asserted = 0;
+	int size = 3;
+	char* test1 = "";
+	char* test2 = "1";
+	char* test3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	char* output[] = {
+		strDup(test1), // str vacio
+		strDup(test2), // str 1 caracter
+		strDup(test3)  // str todos los caracteres alfanumericos
+	};
+	char* expected_output[] = {
+		test1,
+		test2,
+		test3
+	};
+	assertArrayOfStrEquals(output, expected_output, size, &asserted);
+	printf("================= PASSED %i OUT OF %i TESTS FOR strDup() =================\n", asserted, size);
+	for (int i = 0; i < size; i++) {
+		free(output[i]);
 	}
-	free(words);
+}
+
+////////// TESTS PARA keysPredict ////////
+
+void testKeysPredict1() {
+	char* words[] = {"alfajor", "canoa", "rinoceronte", "casa", "rino"}; 
+	int totalWords = 5;
+	int asserted = 0;
+	
+	struct keysPredict* kt = keysPredictNew();
+	fillKeysPredict(kt, words, totalWords);
+	for(int i=0; i<totalWords; i++){
+		struct node* n = keysPredictFind(kt, words[i]);
+		if(n) {
+			assertStrEquals(words[i], n->word);
+			asserted++;
+		}
+		else {
+			printf("----------------- ERROR: WORD '%s' NOT IN keysPredict -----------------\n", words[i]);
+		}
+	}
+	printf("================= FOUND %i OUT OF %i WORDS IN keysPredict (1) =================\n", asserted, totalWords);
+	
+	/////////////////////////////////////////////////////
+	
+	keysPredictRemoveWord(kt, words[1]);
+	keysPredictAddWord(kt, "pato");
+	char* newWords[] = {"alfajor", "pato", "rinoceronte", "casa", "rino"}; 
+	asserted = 0;
+	for(int i=0; i<totalWords; i++){
+		struct node* n = keysPredictFind(kt, newWords[i]);
+		if(n) {
+			assertStrEquals(newWords[i], n->word);
+			asserted++;
+		}
+		else {
+			printf("----------------- ERROR: WORD '%s' NOT IN keysPredict -----------------\n", words[i]);
+		}
+	}
+	printf("================= FOUND %i OUT OF %i WORDS IN keysPredict (2) =================\n", asserted, totalWords);
+	
+	////////////////////////////////////////////////////////
+	
+	char* prefijos[] = {"c", "ca", "casa", "casas", "rino"};
+	char* t1[] = {"casa"};
+	char* t2[] = {"casa"};
+	char* t3[] = {"casa"};
+	char** t4 = 0;
+	char* t5[] = {"rino", "rinoceronte"};
+	char** expectedOutputs[] = {t1, t2, t3, t4, t5};
+	int wordsCounts[] = {1, 1, 1, 0, 2};
+	for(int i = 0; i<5; i++){
+		int asserted = 0;
+		int output_wordsCount = 0;
+		char** foundWords = keysPredictRun(kt, prefijos[i], &output_wordsCount);
+		assertArrayOfStrEquals(foundWords, expectedOutputs[i], wordsCounts[i], &asserted);
+		printf("================= FOUND %i OUT OF %i PREFIXES IN keysPredict (3) =================\n", asserted, wordsCounts[i]);
+		deleteArrayOfWords(foundWords, output_wordsCount);
+	}
+	keysPredictDelete(kt);
+}
+
+void testKeysPredict2() {
+	char* wordsKt[] = {"alfajor", "canoa", "rinoceronte", "casa", "rino"}; 
+	char* wordsToFind[] = {"alfajor", "zapallo", "canoa", "telefono", "rinoceronte", "casa", "rino"}; 
+	int wordsInKt[] = {1, 0, 1, 0, 1, 1, 1};
+	int totalWordsInKt = 5;
+	int totalWordsToFind = 7;
+	int asserted = 0;
+	
+	struct keysPredict* kt = keysPredictNew();
+	fillKeysPredict(kt, wordsKt, totalWordsInKt);
+	for(int i=0; i<totalWordsToFind; i++){
+		struct node* n = keysPredictFind(kt, wordsToFind[i]);
+		if(n) {
+			assertIntEquals(wordsInKt[i], 1);
+			asserted++;
+		}
+		else {
+			assertIntEquals(wordsInKt[i], 0);
+		}
+	}
+	printf("================= FOUND %i OUT OF %i WORDS IN keysPredict (4) =================\n", asserted, totalWordsInKt);
+	keysPredictDelete(kt);
+}
+
+// Codigo sacado de "predict.c" (dado en el enunciado)
+int validate(char* w) {
+	while(*w) {
+		if(!(( 'a' <= *w && *w <= 'z' ) || *w == ' ' || *w == '-'))
+			return 0;
+		w++;
+	}
+	return 1;
+}
+
+void testKeysPredict3(){
+	
+	struct keysPredict* kt = keysPredictNew();
+	int asserted = 0;
+	
+	// Codigo sacado de "predict.c" (dado en el enunciado)
+	FILE *archivo = fopen("test.txt", "r");
+	if (!archivo) {
+		printf("Error al abrir el archivo.\n");
+		return ;
+	}
+	char buffer[100];
+	char* words[100];
+	
+	int i = 0;
+	while (fgets(buffer, sizeof(buffer), archivo) != 0) {
+		buffer[strcspn(buffer, "\n")] = '\0';
+		if(!validate(buffer)) {
+			printf("Error al leer la palabra: '%s'\n", buffer);
+			return ;
+		}
+		keysPredictAddWord(kt, buffer);
+		words[i] = strDup(buffer);
+		struct node* n = keysPredictFind(kt, words[i]);
+		if(n) {
+			assertStrEquals(words[i], n->word);
+			asserted++;
+		}
+		else {
+			printf("----------------- ERROR: WORD '%s' NOT IN keysPredict -----------------\n", words[i]);
+		}
+		i++;
+	}
+	printf("================= FOUND %i OUT OF %i WORDS IN keysPredict (5) =================\n", asserted, 100);
+	
+	fclose(archivo);
+	
+	for(int i = 0; i<49; i++){
+		keysPredictRemoveWord(kt, words[i]);		
+	}
+	
+	if(assertIntEquals(kt->totalWords, 50)){
+		printf("================= HALF OF THE WORDS HAVE BEEN DELETED (5) =================\n");
+	}
+
+	/////////////////////////////////////////////////////
+
+	char* letras = "abcdefghijklmnopqrstuvwxyz";
+	int wordsCount = 0;
+	printf("================= PROBANDO PREFIJOS =================");
+	for(int i = 0; i< strLen(letras); i++){
+		for(int j = 0; j<strLen(letras); j++){
+			char prefijo[3];
+			prefijo[0] = letras[i];
+			prefijo[1] = letras[j];
+			prefijo[2] = '\0';
+
+			char** words = keysPredictRun(kt, prefijo, &wordsCount);
+			if(wordsCount > 0){
+				printf("\nPalabras del prefijo %s: ", prefijo);
+				for(int x = 0; x<wordsCount; x++){
+					if(x == wordsCount -1){
+						printf("%s ", words[x]);
+					}
+					else{
+						printf("%s, ", words[x]);
+					}
+				}
+			}
+			deleteArrayOfWords(words, wordsCount);
+		}
+	}
+			
+	printf("\n");
+}
+
+int main() {
+	testStrLen();
+	testStrDup();
+	
+	// Keys predict
+	printf("\n=> RUNNING KEYSPREDICT TESTS\n");
+	testKeysPredict1(); // Busca palabras y prefijos que se encuentran en el keysPredict
+	testKeysPredict2(); // Busca tanto palabras que se encuentran en el keysPredict como que no
+	testKeysPredict3();  // Crea un keysPredict, le borra palabras y hace predicciones
+
+	return 0;
 }
