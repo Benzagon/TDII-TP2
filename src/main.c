@@ -242,7 +242,11 @@ void testKeysPredict3(){
 	fclose(archivo);
 	
 	for(int i = 0; i<49; i++){
-		keysPredictRemoveWord(kt, words[i]);		
+		keysPredictRemoveWord(kt, words[i]);
+	}
+
+	for (int i = 0; i<100; i++){
+		free(words[i]);
 	}
 	
 	if(assertIntEquals(kt->totalWords, 50)){
@@ -276,7 +280,7 @@ void testKeysPredict3(){
 			deleteArrayOfWords(words, wordsCount);
 		}
 	}
-			
+	keysPredictDelete(kt);	
 	printf("\n");
 }
 
